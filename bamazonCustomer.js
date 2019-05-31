@@ -51,7 +51,7 @@ function wantToBuy(){
         }
     ]).then(function(answer){
         // console.log("id wanting to buy " + answer.idToBuy);
-        var query = "SELECT id, stock_quantity FROM products WHERE id AND stock_quantity ?";
+        var query = "SELECT id, stock_quantity FROM products WHERE id = ? AND stock_quantity = ?";
         connection.query(query, [answer.idToBuy, answer.numberToBuy], function(error, response){
             if (error) throw error;
             console.log("\n");
@@ -63,5 +63,3 @@ function wantToBuy(){
         })
     })
 }
-
-// wantToBuy();
