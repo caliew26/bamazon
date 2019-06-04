@@ -50,14 +50,30 @@ function wantToBuy(){
             name: "numberToBuy"
         }
     ]).then(function(answer){
-        // console.log("id wanting to buy " + answer.idToBuy);
+        var itemID = answer.idToBuy;
+        var quantity = answer.numberToBuy;
         var query = "SELECT id, stock_quantity FROM products WHERE id = ? AND stock_quantity = ?";
-        connection.query(query, [answer.idToBuy, answer.numberToBuy], function(error, response){
+        console.log("id wanting to buy " + itemID);
+
+        connection.query(query, [answer.itemID, answer.quantity], function(error, response){
             if (error) throw error;
             console.log("\n");
             for(let j = 0; j < response.length; j++){
                 console.log(`id: ${response[j].id} stock_quantity: ${response[j].stock_quantity}`);
-            }
+                
+                if(answer.quantity <= response[j].stock_quantity){
+
+                    console.log("There is insufficient quantity to complete your order.")
+                } else {
+                connection.query(
+                    "UPDATE products SET stock_quantity=? WHERE id=?",
+                    [response.stock_quantity - quantity, itemID],
+                    function(err) {
+                        if (err) throw err;
+                        console.log("Thank you for your purchase");
+                    }
+                )
+            }}
             console.log("\n");
             connection.end();
         })
