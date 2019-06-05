@@ -1,7 +1,8 @@
-var mysql = require("mysql");
-var inq = require("inquirer");
+const mysql = require("mysql");
+const inq = require("inquirer");
+const Table = require("cli-table");
 
-var connection = mysql.createConnection({
+const connection = mysql.createConnection({
     host: "localhost",
   
     // Your port; if not 3306
@@ -14,33 +15,41 @@ var connection = mysql.createConnection({
     password: "Potter!!13",
     database: "bamazon"
 });
-  
+
+//Connection established with server
 connection.connect(function(err) {
     if (err) throw err;  
     console.log("connected as id " + connection.threadId);
-    // connection.end();
     allAvail();
 });
 
+
+//this is calling to mySQL database bamazon and getting the list of products
 function allAvail(){
     // console.log("allAvail search");
-    var query = "SELECT id, product_name, department_name, price, stock_quantity FROM products";
+    var query = "SELECT * FROM products";
     connection.query(query, function(err, resp){
         if(err) throw err;
         console.log("\n");
+        //I want to create a table that will have a row of all of the products
+        var table = new Table({
+            head: ['ID', 'Product', 'Department', 'Price', 'Quantity'], colWidths: [5,25, 25, 15, 10 ]
+        });
+        console.log("\n");
         for(let i = 0; i < resp.length; i++){
-            console.log(`id: ${resp[i].id} product: ${resp[i].product_name} department: ${resp[i].department_name} price: ${resp[i].price} quantity: ${resp[i].stock_quantity}`);
+            table.push([resp[i].id, resp[i].product_name, resp[i].department_name, resp[i].price.toFixed(2), resp[i].stock_quantity]);
         }
+        console.log(table.toString());
         console.log("\n");
         wantToBuy();
     })
 }
 
-
+//this is a prompt that will ask the user what item they want to buy and how many of them they want
 function wantToBuy(){
     inq.prompt([
         {
-            type: "input",
+            type: "number",
             message: "Which item id would you like to buy?",
             name: "idToBuy"
         },
@@ -50,32 +59,38 @@ function wantToBuy(){
             name: "numberToBuy"
         }
     ]).then(function(answer){
-        var itemID = answer.idToBuy;
-        var quantity = answer.numberToBuy;
-        var query = "SELECT id, stock_quantity FROM products WHERE id = ? AND stock_quantity = ?";
-        console.log("id wanting to buy " + itemID);
+        var query = "SELECT id, stock_quantity FROM products WHERE id=?";
+        // console.log("id wanting to buy " + answer.idToBuy);
+        console.log("\n");
 
-        connection.query(query, [answer.itemID, answer.quantity], function(error, response){
-            if (error) throw error;
-            console.log("\n");
-            for(let j = 0; j < response.length; j++){
-                console.log(`id: ${response[j].id} stock_quantity: ${response[j].stock_quantity}`);
-                
-                if(answer.quantity <= response[j].stock_quantity){
-
-                    console.log("There is insufficient quantity to complete your order.")
-                } else {
-                connection.query(
+        connection.query(query, [answer.idToBuy], function(error, response){
+            if (error) {
+                throw error;
+            } else {
+                if (answer.numberToBuy > response[0].stock_quantity){
+                    connection.query(
                     "UPDATE products SET stock_quantity=? WHERE id=?",
-                    [response.stock_quantity - quantity, itemID],
-                    function(err) {
-                        if (err) throw err;
-                        console.log("Thank you for your purchase");
+                        [response[0].stock_quantity - parseInt(answer.numberToBuy), answer.idToBuy],
+                        function(err) {
+                            if (err) throw err;
+                            console.log("There is insufficient quantity to complete your order");
+                        })
+                } else {
+                // console.log(response[0].stock_quantity)
+                
+                    connection.query(
+                        "UPDATE products SET stock_quantity=? WHERE id=?",
+                        [response[0].stock_quantity - parseInt(answer.numberToBuy), answer.idToBuy],
+                        function(err) {
+                            if (err) throw err;
+                            console.log("Thank you for your purchase");
                     }
                 )
-            }}
+            }
+        }
             console.log("\n");
-            connection.end();
+            allAvail();
         })
     })
+    // connection.end();
 }
