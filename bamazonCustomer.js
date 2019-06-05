@@ -20,7 +20,6 @@ const connection = mysql.createConnection({
 connection.connect(function(err) {
     if (err) throw err;  
     console.log("connected as id " + connection.threadId);
-    allAvail();
 });
 
 
@@ -59,8 +58,8 @@ function wantToBuy(){
             name: "numberToBuy"
         }
     ]).then(function(answer){
-        var query = "SELECT id, stock_quantity FROM products WHERE id=?";
-        // console.log("id wanting to buy " + answer.idToBuy);
+        var query = "SELECT id, price, stock_quantity FROM products WHERE id=?";
+        console.log("id wanting to buy " + answer.idToBuy);
         console.log("\n");
 
         connection.query(query, [answer.idToBuy], function(error, response){
@@ -76,21 +75,23 @@ function wantToBuy(){
                             console.log("There is insufficient quantity to complete your order");
                         })
                 } else {
-                // console.log(response[0].stock_quantity)
+                console.log(response[0].stock_quantity)
                 
                     connection.query(
                         "UPDATE products SET stock_quantity=? WHERE id=?",
                         [response[0].stock_quantity - parseInt(answer.numberToBuy), answer.idToBuy],
                         function(err) {
                             if (err) throw err;
-                            console.log("Thank you for your purchase");
+                            console.log("Thank you for your purchase, Your total cost is " + (parseInt(answer.numberToBuy) * parseInt(response[0].price)));
                     }
                 )
             }
         }
-            console.log("\n");
-            allAvail();
+            // console.log("\n");
+            // allAvail();
+        connection.end();
         })
     })
-    // connection.end();
-}
+} 
+
+allAvail();
