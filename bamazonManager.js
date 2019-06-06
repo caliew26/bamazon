@@ -1,25 +1,25 @@
+//dependencies
 const mysql = require("mysql");
 const inquirer = require("inquirer");
 const Table = require("cli-table");
 
+//establishing mysql connection
 const connection = mysql.createConnection({
     host: "localhost",
-    // Your port; if not 3306
     port: 3306,
-    // Your username
     user: "root",
-    // Your password
     password: "Potter!!13",
     database: "bamazon"
 });
 
-//Connection established with server
+//Connection established with server and calling the function allAvail to see all of the items available in the db
 connection.connect(function(err) {
     if (err) throw err;  
     console.log("connected as id " + connection.threadId);
     managerSearch();
 });
 
+//will be an inquirer.prompt that will ask the manager what they would like to do
 function managerSearch(){
     inquirer.prompt([
         {
@@ -34,6 +34,7 @@ function managerSearch(){
         "exit"
         ]
     }])
+    //switch case that will call the function based on what choice the user makes
     .then(function(answer) {
         switch (answer.action) {
         case "View all Products for Sale":
@@ -59,12 +60,13 @@ function managerSearch(){
     });
 }
 
+//function created that will dispay all of the items within the db
 function allProcucts(){
     // console.log("allAvail search");
     var query = "SELECT * FROM products";
     connection.query(query, function(err, resp){
         if(err) throw err;
-        //I want to create a table that will have a row of all of the products
+        //create a table that will have a row of all of the products
         var table = new Table({
             head: ['ID', 'Product', 'Department', 'Price', 'Quantity'], colWidths: [5,25, 25, 15, 10 ]
         });
@@ -77,6 +79,7 @@ function allProcucts(){
 }
 // allProcucts();
 
+//function to view all inventory that has less than 5 stock_quantity
 function lowInventory(){
     var query = "SELECT * FROM products";
 
@@ -101,14 +104,42 @@ function lowInventory(){
 };
 // lowInventory();
 
-function addToInvetory(){
-    var query = "SELECT * FROM products";
-
-    connection.query(query, function(error, resp){
-        if (error) throw error;
-
-        var table = new Table({
-            head: ['ID', 'Product', 'Department', 'Price', 'Quantity'], colWidths: [5,25, 25, 15, 10 ]
-        });
-    })
+//function to add inventory to the db
+function addNewProduct(){
+    inquirer.prompt([
+        {
+            type: "input",
+            message: "What product would you like to add to the inventory?",
+            name: "prodAdd"
+        },
+        {
+            type: "input",
+            message: "What department does that product belong in?",
+            name: "deptName"
+        },
+        {
+            type: "number",
+            message: "What does this product cost per unit?",
+            name: "priceCost"
+        },
+        {
+            type: "number",
+            message: "How many of those are you adding to the inventory?",
+            name: "qtyAdd"
+        }
+    ]).then(function(mgrProductAdd){
+        console.log(mgrProductAdd);
+        var query = connection.query(
+            "INSERT INTO products SET ?",
+            {
+                product_name: mgrProductAdd.prodAdd,
+                department_name: mgrProductAdd.deptName,
+                price: mgrProductAdd.priceCost, 
+                stock_quantity: mgrProductAdd.qtyAdd
+            }
+        )
+        console.log("The product has been added");
+    }).catch (function(err){
+        if (err) throw error;
+        })
 }

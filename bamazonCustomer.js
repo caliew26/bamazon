@@ -1,25 +1,22 @@
+//dependencies
 const mysql = require("mysql");
 const inq = require("inquirer");
 const Table = require("cli-table");
 
+//establishing mysql connection
 const connection = mysql.createConnection({
     host: "localhost",
-  
-    // Your port; if not 3306
     port: 3306,
-  
-    // Your username
     user: "root",
-  
-    // Your password
     password: "Potter!!13",
     database: "bamazon"
 });
 
-//Connection established with server
+//Connection established with server and calling the function allAvail to see all of the items available in the db
 connection.connect(function(err) {
     if (err) throw err;  
     console.log("connected as id " + connection.threadId);
+    allAvail();
 });
 
 
@@ -30,7 +27,7 @@ function allAvail(){
     connection.query(query, function(err, resp){
         if(err) throw err;
         console.log("\n");
-        //I want to create a table that will have a row of all of the products
+        // create a table that will have a row of all of the products
         var table = new Table({
             head: ['ID', 'Product', 'Department', 'Price', 'Quantity'], colWidths: [5,25, 25, 15, 10 ]
         });
@@ -44,7 +41,7 @@ function allAvail(){
     })
 }
 
-//this is a prompt that will ask the user what item they want to buy and how many of them they want
+//prompt that will ask the user what item they want to buy and how many of them they want
 function wantToBuy(){
     inq.prompt([
         {
