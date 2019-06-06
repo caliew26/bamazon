@@ -31,14 +31,14 @@ function managerSearch(){
         "View Low Inventory",
         "Add to Inventory",
         "Add a New Product",
-        "exit"
+        "Exit"
         ]
     }])
     //switch case that will call the function based on what choice the user makes
     .then(function(answer) {
         switch (answer.action) {
         case "View all Products for Sale":
-        allProcucts();
+        allProducts();
         break;
 
         case "View Low Inventory":
@@ -48,18 +48,23 @@ function managerSearch(){
         case "Add to Inventory":
         addToInvetory();
         break;
-
+``
         case "Add a New Product":
         addNewProduct();
+        break;
+
+        case "Exit":
+        connection.end();
         break;
         }
     });
 }
 
 //function created that will dispay all of the items within the db
-function allProcucts(){
+function allProducts(){
     // console.log("allAvail search");
     var query = "SELECT * FROM products";
+    // console.log(query);
     connection.query(query, function(err, resp){
         if(err) throw err;
         //create a table that will have a row of all of the products
@@ -143,7 +148,7 @@ function priceUpdate(){
         if(err) throw err;
 
         connection.query(
-            "UPDATE products SET price=? WHERE id=?", [answer.priceUpdate, answer.prodID], function(err,resp) {
+            "UPDATE products SET price=? WHERE id=?", [answer.priceToUpdate, answer.prodID], function(err,resp) {
                 if(err) throw err;
                 console.log("your price change has been completed");
            
@@ -155,7 +160,7 @@ function priceUpdate(){
                 table.push([resp[i].id, resp[i].product_name, resp[i].department_name, resp[i].price.toFixed(2), resp[i].stock_quantity]);
             }
             console.log(table.toString());
-            console.log("\n");
+            console.log("\n")
         })
     })
         
@@ -236,5 +241,5 @@ function addNewProduct(){
         console.log("The product has been added");
     }).catch (function(err){
         if (err) throw error;
-        })
+    })
 }
