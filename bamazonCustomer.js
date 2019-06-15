@@ -91,4 +91,4 @@ function wantToBuy(){
     })
 } 
 
-allAvail();
+// allAvail();
